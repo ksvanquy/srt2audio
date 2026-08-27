@@ -43,9 +43,9 @@ python -m pip install -r requirements.txt
 
 Dependency trực tiếp được khai báo trong `requirements.txt`:
 
-- `edge-tts>=6.1.9`
-- `pysrt>=1.1.2`
-- `faster-whisper>=1.0.3`
+- `edge-tts==7.2.8`
+- `pysrt==1.1.2`
+- `faster-whisper==1.2.1`
 
 ## Sử dụng nhanh
 
@@ -123,10 +123,10 @@ python main.py --help
 ## Pipeline
 
 1. `srt_parser.py` đọc SRT bằng `pysrt`, xóa HTML tag, thay newline bằng khoảng trắng và nối các subtitle thành một chuỗi.
-2. `tts_engine.py` gửi toàn bộ chuỗi cho Edge-TTS để tạo audio liên tục.
+2. `tts_engine.py` chia văn bản dài thành các chunk tối đa khoảng 3000 ký tự, gửi tuần tự cho Edge-TTS và ghép audio vào một file tạm.
 3. `aligner.py` chạy faster-whisper trên audio với `language="vi"`, word timestamps, CPU và `int8`.
 4. Các từ trong mỗi Whisper segment được gom tuần tự thành các chunk theo `--max-chars`, rồi ghi vào `--sync-srt`.
-5. Whisper được chạy thêm một lần để ghi từng từ vào `--word-srt`.
+5. Cùng transcription đã có được dùng để ghi từng từ vào `--word-srt`; Whisper không bị chạy lại.
 
 ## Input và output
 

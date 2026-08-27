@@ -1,8 +1,28 @@
 import argparse
 import sys
+from pathlib import Path
 from srt_parser import extract_full_text
 from tts_engine import generate_audio
-from aligner import align_audio_to_srt, export_word_level_srt
+from aligner import transcribe_audio, write_chunked_srt, write_word_level_srt
+
+def get_word_srt_path(sync_srt_path: str, word_srt_path: str) -> str:
+    if word_srt_path:
+        return word_srt_path
+    sync_path = Path(sync_srt_path)
+    return str(sync_path.with_name(f"{sync_path.stem}_word_by_word{sync_path.suffix}"))
+
+def validate_output_paths(output_path: str, sync_srt_path: str, word_srt_path: str):
+    paths = {
+        "audio output": Path(output_path).resolve(),
+        "synced SRT output": Path(sync_srt_path).resolve(),
+        "word-by-word SRT output": Path(word_srt_path).resolve(),
+    }
+    unique_paths = set(paths.values())
+    if len(unique_paths) != len(paths):
+        duplicates = ", ".join(
+            name for name, path in paths.items() if list(paths.values()).count(path) > 1
+        )
+        raise ValueError(f"Các file output bị trùng đường dẫn: {duplicates}.")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -21,6 +41,11 @@ def main():
     parser.add_argument("--max-chars", type=int, default=40, help="Số ký tự tối đa cho mỗi đoạn phụ đề (mặc định: 40).")
 
     args = parser.parse_args()
+    word_srt_path = get_word_srt_path(args.sync_srt, args.word_srt)
+    try:
+        validate_output_paths(args.output, args.sync_srt, word_srt_path)
+    except ValueError as e:
+        parser.error(str(e))
 
     print(f"\n--- [BƯỚC 1]: TRÍCH XUẤT VĂN BẢN ---")
     try:
@@ -44,13 +69,12 @@ def main():
 
     print(f"\n--- [BƯỚC 3]: SMART CHUNKING & ALIGNMENT ---")
     try:
-        align_audio_to_srt(
+        transcription = transcribe_audio(
             audio_path=args.output,
-            output_srt_path=args.sync_srt,
             model_size=args.whisper_model,
             initial_prompt=initial_prompt,
-            max_chars_per_line=args.max_chars
         )
+        write_chunked_srt(transcription, args.sync_srt, args.max_chars)
         print(f"\n[HOÀN TẤT] Subtitle Smart Chunking đã được tạo thành công!")
     except Exception as e:
         print(f"[Lỗi Alignment] {e}", file=sys.stderr)
@@ -58,13 +82,7 @@ def main():
 
     print(f"\n--- [BƯỚC 4]: XUẤT PHỤ ĐỀ WORD-BY-WORD ---")
     try:
-        word_srt_path = args.word_srt if args.word_srt else args.sync_srt.replace(".srt", "_word_by_word.srt")
-        export_word_level_srt(
-            audio_path=args.output,
-            output_srt_path=word_srt_path,
-            model_size=args.whisper_model,
-            initial_prompt=initial_prompt
-        )
+        write_word_level_srt(transcription, word_srt_path)
         print(f"\n[HOÀN TẤT] Subtitle Word-by-Word đã được tạo thành công tại: {word_srt_path}")
     except Exception as e:
         print(f"[Lỗi Word-by-Word] {e}", file=sys.stderr)
