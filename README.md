@@ -502,5 +502,3 @@ Pipeline phù hợp cho:
 Tùy thuộc vào license được lựa chọn cho dự án.
 
 > **Lưu ý:** Việc sử dụng Edge-TTS, faster-whisper, FFmpeg và các model liên quan cần tuân thủ license và điều khoản sử dụng tương ứng của từng dự án.
-#   s r t 2 a u d i o  
- 
