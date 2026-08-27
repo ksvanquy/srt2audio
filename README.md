@@ -1,504 +1,167 @@
-# 🎬 Smart Subtitle & Audio Pipeline (CapCut Style)
+# SRT to Audio
 
-Công cụ Python **All-in-One** tự động hóa quy trình chuyển đổi file SRT thô thành file Audio đọc tự nhiên bằng AI (`edge-tts`) và đồng bộ phụ đề chuẩn xác đến từng từ bằng `faster-whisper`.
+Công cụ dòng lệnh chuyển nội dung tiếng Việt trong file SRT thành audio đọc liên tục bằng [Edge-TTS](https://github.com/rany2/edge-tts), sau đó dùng [faster-whisper](https://github.com/SYSTRAN/faster-whisper) để nhận dạng audio và tạo timestamp theo từ.
 
-Pipeline hỗ trợ **Smart Chunking** — ngắt dòng phụ đề thông minh theo phong cách CapCut — và xuất phụ đề **Word-by-Word** với timestamp riêng cho từng từ, phù hợp cho các hiệu ứng pop-up, đổi màu hoặc animation.
+Kết quả phù hợp để tạo subtitle bám theo audio TTS, subtitle chia đoạn ngắn hoặc hiệu ứng hiển thị từng từ. Đây là **word-level transcription/timestamping**, không phải forced alignment chính xác với văn bản SRT gốc.
 
----
+## Tính năng
 
-## ✨ Tính năng chính
+- Đọc và gom nội dung từ toàn bộ file SRT.
+- Xóa HTML tag và chuẩn hóa xuống dòng trong nội dung subtitle.
+- Tạo một file audio liền mạch với Edge-TTS.
+- Tạo SRT chia thành các chunk dựa trên timestamp của Whisper.
+- Tạo SRT word-by-word, mỗi mục tương ứng với một từ.
+- Tùy chỉnh voice, tốc độ, âm lượng, cao độ, model Whisper và độ dài chunk.
 
-### 📝 Trích xuất văn bản tự động
+## Yêu cầu
 
-* Đọc toàn bộ nội dung từ file SRT đầu vào.
-* Tự động loại bỏ các thẻ HTML.
-* Làm sạch các định dạng hoặc nội dung rác trước khi đưa vào TTS.
+- Python 3.8 trở lên.
+- Kết nối Internet khi chạy Edge-TTS; lần đầu dùng model Whisper có thể cần tải model.
+- faster-whisper hiện được cấu hình chạy trên CPU với `compute_type="int8"`. Model mặc định `medium` có thể cần nhiều RAM và chạy lâu.
 
-### 🎙️ Tổng hợp giọng đọc AI — Edge-TTS
+Mã nguồn không gọi FFmpeg trực tiếp. Nếu môi trường hoặc phiên bản backend audio của bạn yêu cầu FFmpeg, hãy cài riêng và thêm vào `PATH`.
 
-* Sử dụng `edge-tts` để tạo giọng đọc AI.
-* Tạo file audio liền mạch từ toàn bộ nội dung.
-* Hỗ trợ tùy chỉnh:
+## Cài đặt
 
-  * Giọng đọc.
-  * Tốc độ đọc.
-  * Âm lượng.
-  * Độ cao giọng đọc.
+Từ thư mục dự án, tạo virtual environment và cài dependency:
 
-### ✂️ Smart Chunking — Cắt câu kiểu CapCut
+### Windows PowerShell
 
-Sử dụng timestamp cấp độ từ (**word-level timestamps**) do Whisper cung cấp để tự động gom nhóm các từ thành những đoạn phụ đề cân đối.
-
-Mặc định:
-
-```text
---max-chars 40
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
-Ví dụ:
-
-```text
-Quê hương là nơi mỗi người
-được sinh ra và lớn lên.
-```
-
-Thay vì giữ nguyên các câu hoặc đoạn SRT ban đầu, hệ thống có thể phân chia lại subtitle dựa trên:
-
-* Timestamp thực tế của từng từ.
-* Độ dài tối đa của mỗi dòng.
-* Ranh giới từ.
-* Tính liên tục của nội dung.
-
-### 💬 Word-by-Word SRT Export
-
-Xuất thêm một file SRT riêng trong đó mỗi subtitle tương ứng với **một từ**.
-
-Ví dụ:
-
-```text
-1
-00:00:00,000 --> 00:00:00,420
-Quê
-
-2
-00:00:00,420 --> 00:00:00,760
-hương
-
-3
-00:00:00,760 --> 00:00:01,120
-là
-```
-
-Định dạng này phù hợp với:
-
-* Hiệu ứng từng từ xuất hiện.
-* Word pop-up.
-* Karaoke.
-* Đổi màu từng từ.
-* Animation subtitle.
-* Video TikTok / Reels / Shorts.
-
-### 🖥️ Giao diện dòng lệnh — CLI
-
-CLI cho phép tùy chỉnh toàn bộ pipeline mà không cần sửa mã nguồn:
-
-* File SRT đầu vào.
-* File audio đầu ra.
-* File SRT đồng bộ.
-* File Word-by-Word SRT.
-* Voice Edge-TTS.
-* Rate.
-* Volume.
-* Pitch.
-* Whisper model.
-* Prompt.
-* Giới hạn ký tự subtitle.
-
----
-
-## 📦 Yêu cầu hệ thống
-
-### Python
-
-Yêu cầu:
-
-```text
-Python 3.8+
-```
-
-### FFmpeg
-
-`FFmpeg` cần được cài đặt trên hệ thống và thêm vào biến môi trường `PATH`.
-
-FFmpeg được sử dụng trong quá trình xử lý audio phục vụ cho Whisper.
-
-Kiểm tra:
+### Linux/macOS
 
 ```bash
-ffmpeg -version
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
-Nếu lệnh trên trả về thông tin phiên bản FFmpeg thì hệ thống đã nhận diện được FFmpeg.
+Dependency trực tiếp được khai báo trong `requirements.txt`:
 
-### Python packages
+- `edge-tts>=6.1.9`
+- `pysrt>=1.1.2`
+- `faster-whisper>=1.0.3`
 
-Các thư viện chính:
+## Sử dụng nhanh
 
-```text
-faster-whisper
-edge-tts
-pysrt
-```
-
-Cài đặt:
+Đặt file SRT UTF-8 vào thư mục dự án rồi chạy:
 
 ```bash
-pip install faster-whisper edge-tts pysrt
+python main.py input.srt
 ```
 
----
-
-## ⚙️ Hướng dẫn cài đặt nhanh
-
-### 1. Chuẩn bị mã nguồn
-
-Đặt hai file:
+Lệnh trên tạo:
 
 ```text
-app.py
-run.sh
-```
-
-vào cùng một thư mục.
-
-Cấu trúc tối thiểu:
-
-```text
-smart-subtitle-pipeline/
-├── app.py
-├── run.sh
-└── input.srt
-```
-
-### 2. Chuẩn bị file SRT
-
-Đặt file SRT cần xử lý vào cùng thư mục.
-
-Ví dụ:
-
-```text
-input.srt
-```
-
-Nội dung:
-
-```srt
-1
-00:00:00,000 --> 00:00:03,000
-Quê hương là nơi mỗi người được sinh ra.
-
-2
-00:00:03,000 --> 00:00:06,000
-Là nơi lưu giữ những ký ức tuổi thơ.
-```
-
----
-
-# 🚀 Hướng dẫn sử dụng
-
-## Cách 1 — Sử dụng Bash Script
-
-Trên Linux/macOS, cấp quyền thực thi:
-
-```bash
-chmod +x run.sh
-```
-
-Sau đó chạy:
-
-```bash
-./run.sh input.srt
-```
-
-Script có thể được sử dụng để tự động hóa toàn bộ quá trình xử lý.
-
----
-
-## Cách 2 — Chạy trực tiếp bằng Python
-
-Cài đặt dependencies:
-
-```bash
-pip install faster-whisper edge-tts pysrt
-```
-
-Sau đó chạy:
-
-```bash
-python app.py input.srt \
-  -o output.mp3 \
-  -s synced_output.srt \
-  -w word_by_word.srt \
-  --whisper-model medium \
-  --max-chars 40
-```
-
-Pipeline sẽ thực hiện:
-
-```text
-input.srt
-    │
-    ▼
-Extract & Clean Text
-    │
-    ▼
-Edge-TTS
-    │
-    ▼
 output.mp3
-    │
-    ▼
-faster-whisper
-    │
-    ▼
-Word-level Timestamps
-    │
-    ├───────────────┐
-    ▼               ▼
-Smart Chunking    Word-by-Word
-    │               │
-    ▼               ▼
-synced_output.srt  word_by_word.srt
+synced_output.srt
+synced_output_word_by_word.srt
 ```
 
----
+Tên file word-by-word mặc định được tạo bằng cách thay `.srt` trong giá trị `--sync-srt` bằng `_word_by_word.srt`.
 
-# 🎬 Smart Subtitle & Audio Pipeline — CLI Reference
-
-## 🚀 Câu lệnh Bash đầy đủ
-
-Có thể sử dụng câu lệnh sau để cấu hình toàn bộ các tham số:
+Ví dụ chỉ định toàn bộ các tùy chọn:
 
 ```bash
-python app.py input.srt \
+python main.py input.srt \
   -o output.mp3 \
   -s synced_output.srt \
   -w word_by_word.srt \
   -v vi-VN-HoaiMyNeural \
-  -r "+0%" \
+  -r "+10%" \
   --volume "+0%" \
-  --pitch "+0Hz" \
-  --whisper-model medium \
-  --prompt "Đoạn văn bản mẫu định hướng từ vựng cho Whisper..." \
+  --pitch "+2Hz" \
+  --whisper-model small \
+  --prompt "Đoạn văn bản mẫu định hướng từ vựng cho Whisper" \
   --max-chars 40
 ```
 
----
+Trên PowerShell, cú pháp nhiều dòng tương đương dùng dấu backtick:
 
-## 📋 Bảng tham số CLI
-
-| Tham số / Cờ       | Giá trị mặc định     | Mô tả                                    |
-| ------------------ | -------------------- | ---------------------------------------- |
-| `input`            | **Bắt buộc**         | Đường dẫn file SRT đầu vào               |
-| `-o`, `--output`   | `output.mp3`         | File audio đầu ra                        |
-| `-s`, `--sync-srt` | `synced_output.srt`  | File SRT đồng bộ mới bằng Smart Chunking |
-| `-w`, `--word-srt` | Trống                | Tên file SRT Word-by-Word đầu ra         |
-| `-v`, `--voice`    | `vi-VN-HoaiMyNeural` | Giọng đọc Edge-TTS                       |
-| `-r`, `--rate`     | `+0%`                | Tốc độ đọc                               |
-| `--volume`         | `+0%`                | Âm lượng                                 |
-| `--pitch`          | `+0Hz`               | Độ cao giọng đọc                         |
-| `--whisper-model`  | `medium`             | Model Whisper sử dụng để nhận dạng       |
-| `--prompt`         | `""`                 | Prompt định hướng từ vựng cho Whisper    |
-| `--max-chars`      | `40`                 | Số ký tự tối đa cho mỗi đoạn phụ đề      |
-
----
-
-# 🧩 Ví dụ sử dụng
-
-## Ví dụ 1 — Cấu hình cơ bản
-
-```bash
-python app.py input.srt
+```powershell
+python main.py input.srt `
+  -o output.mp3 `
+  -s synced_output.srt `
+  -w word_by_word.srt `
+  --whisper-model small `
+  --max-chars 40
 ```
 
-Sử dụng các giá trị mặc định của chương trình.
+## CLI reference
 
----
+| Tham số | Mặc định | Mô tả |
+| --- | --- | --- |
+| `input` | Bắt buộc | Đường dẫn file SRT đầu vào. |
+| `-o`, `--output` | `output.mp3` | File audio đầu ra. |
+| `-s`, `--sync-srt` | `synced_output.srt` | SRT được tạo từ timestamp của Whisper và thuật toán chia chunk. |
+| `-w`, `--word-srt` | Trống | Tên SRT word-by-word; để trống thì tự động đặt tên theo `--sync-srt`. |
+| `-v`, `--voice` | `vi-VN-HoaiMyNeural` | Voice Edge-TTS. |
+| `-r`, `--rate` | `+0%` | Tốc độ đọc theo định dạng Edge-TTS, ví dụ `+10%` hoặc `-10%`. |
+| `--volume` | `+0%` | Âm lượng theo định dạng Edge-TTS. |
+| `--pitch` | `+0Hz` | Cao độ theo định dạng Edge-TTS. |
+| `--whisper-model` | `medium` | Tên model faster-whisper, ví dụ `small` hoặc `medium`. |
+| `--prompt` | Trống | Prompt định hướng từ vựng cho Whisper. Nếu bỏ trống, chương trình dùng 200 ký tự đầu của văn bản. |
+| `--max-chars` | `40` | Số ký tự mục tiêu tối đa cho mỗi chunk trong từng Whisper segment. Đây là giới hạn xấp xỉ. |
 
-## Ví dụ 2 — Tạo audio và subtitle đồng bộ
+Xem các tham số trực tiếp từ terminal:
 
 ```bash
-python app.py input.srt \
-  -o output.mp3 \
-  -s synced_output.srt
+python main.py --help
 ```
 
-Kết quả:
+## Pipeline
+
+1. `srt_parser.py` đọc SRT bằng `pysrt`, xóa HTML tag, thay newline bằng khoảng trắng và nối các subtitle thành một chuỗi.
+2. `tts_engine.py` gửi toàn bộ chuỗi cho Edge-TTS để tạo audio liên tục.
+3. `aligner.py` chạy faster-whisper trên audio với `language="vi"`, word timestamps, CPU và `int8`.
+4. Các từ trong mỗi Whisper segment được gom tuần tự thành các chunk theo `--max-chars`, rồi ghi vào `--sync-srt`.
+5. Whisper được chạy thêm một lần để ghi từng từ vào `--word-srt`.
+
+## Input và output
+
+Input là file SRT UTF-8, ví dụ:
+
+```srt
+1
+00:00:01,000 --> 00:00:04,000
+Quê hương là nơi mỗi người được sinh ra.
+
+2
+00:00:04,500 --> 00:00:08,000
+Là nơi lưu giữ những ký ức tuổi thơ.
+```
+
+Các timestamp và khoảng nghỉ của SRT đầu vào **không được giữ lại**. Chương trình chỉ lấy text, đọc thành một audio liên tục, rồi tạo timestamp mới từ kết quả Whisper. Vì Whisper là mô hình nhận dạng giọng nói, text output có thể khác input về dấu câu, cách viết hoặc từ ngữ.
+
+`output.mp3` là audio do Edge-TTS tạo. `synced_output.srt` chứa các chunk có timestamp. File word-by-word chứa một từ trên mỗi mục SRT. Các file đầu ra có thể bị ghi đè; thư mục cha của chúng phải tồn tại trước khi chạy.
+
+## Cấu trúc dự án
 
 ```text
-output.mp3
-synced_output.srt
+srt2audio/
+├── main.py          # CLI và điều phối pipeline
+├── srt_parser.py    # Đọc, làm sạch và gom text SRT
+├── tts_engine.py    # Tạo audio bằng Edge-TTS
+├── aligner.py       # Whisper timestamp và xuất SRT
+├── requirements.txt
+├── input.srt        # File mẫu
+└── README.md
 ```
 
----
+## Giới hạn đã biết
 
-## Ví dụ 3 — Xuất Word-by-Word
+- Ngôn ngữ Whisper đang cố định là tiếng Việt (`vi`); CLI chưa có tùy chọn đổi ngôn ngữ.
+- Đây không phải forced alignment với transcript gốc. Kết quả phụ thuộc vào khả năng nhận dạng của Whisper.
+- `--max-chars` được áp dụng trong từng Whisper segment, không phải trên toàn bộ audio; một từ dài hơn giới hạn vẫn được giữ nguyên.
+- Model được khởi tạo và audio được nhận dạng hai lần khi xuất cả hai loại SRT, nên có thể tốn thêm thời gian và bộ nhớ.
+- Nội dung rỗng có thể khiến bước Edge-TTS thất bại.
+- Tên word-by-word tự động dùng phép thay thế chuỗi `.srt`, vì vậy nên dùng tên `--sync-srt` có phần mở rộng `.srt` viết thường khi muốn dùng quy tắc mặc định.
 
-```bash
-python app.py input.srt \
-  -o output.mp3 \
-  -s synced_output.srt \
-  -w word_by_word.srt
-```
+## License
 
-Kết quả:
-
-```text
-output.mp3
-synced_output.srt
-word_by_word.srt
-```
-
----
-
-## Ví dụ 4 — Giới hạn subtitle 30 ký tự
-
-```bash
-python app.py input.srt \
-  --max-chars 30
-```
-
-Điều này yêu cầu Smart Chunking cố gắng giới hạn mỗi đoạn subtitle ở mức tối đa khoảng 30 ký tự.
-
----
-
-## Ví dụ 5 — Thay đổi giọng đọc
-
-```bash
-python app.py input.srt \
-  -v vi-VN-HoaiMyNeural
-```
-
-Có thể thay đổi voice theo voice mà Edge-TTS hỗ trợ.
-
----
-
-## Ví dụ 6 — Điều chỉnh tốc độ, âm lượng và pitch
-
-```bash
-python app.py input.srt \
-  -r "+10%" \
-  --volume "+0%" \
-  --pitch "+2Hz"
-```
-
----
-
-# 📁 Cấu trúc đầu ra
-
-Sau khi chạy pipeline, thư mục có thể có dạng:
-
-```text
-smart-subtitle-pipeline/
-│
-├── app.py
-├── run.sh
-├── input.srt
-│
-├── output.mp3
-├── synced_output.srt
-└── word_by_word.srt
-```
-
-### `output.mp3`
-
-File audio được tạo bởi Edge-TTS.
-
-### `synced_output.srt`
-
-File subtitle được tạo lại dựa trên timestamp thực tế từ Whisper và thuật toán Smart Chunking.
-
-### `word_by_word.srt`
-
-File subtitle trong đó mỗi từ có timestamp riêng.
-
----
-
-# 🔄 Pipeline xử lý
-
-Toàn bộ quy trình:
-
-```text
-┌──────────────────────┐
-│      input.srt       │
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────┐
-│ Extract SRT Text     │
-│ Remove HTML / Noise  │
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────┐
-│       Edge-TTS       │
-│   Generate Audio     │
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────┐
-│      output.mp3      │
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────┐
-│   faster-whisper     │
-│ Word-level Timestamp │
-└──────────┬───────────┘
-           │
-           ▼
-      ┌────┴─────┐
-      │          │
-      ▼          ▼
-┌───────────┐ ┌───────────────┐
-│   Smart   │ │ Word-by-Word  │
-│ Chunking  │ │    Export     │
-└─────┬─────┘ └───────┬───────┘
-      │               │
-      ▼               ▼
-synced_output.srt  word_by_word.srt
-```
-
----
-
-# 🎯 Mục tiêu thiết kế
-
-Pipeline được thiết kế theo hướng **Script → Audio → Word Timestamp → Subtitle**, thay vì phụ thuộc hoàn toàn vào timestamp của SRT gốc.
-
-Điều này giúp subtitle bám sát hơn với **audio thực tế**, đặc biệt khi:
-
-* Tốc độ đọc thay đổi.
-* Nội dung SRT có timestamp không chính xác.
-* Một câu được đọc nhanh hoặc chậm hơn dự kiến.
-* Cần tạo subtitle animation theo từng từ.
-* Cần chia subtitle thành các đoạn ngắn phù hợp với video dạng short-form.
-
----
-
-# 📌 Use Cases
-
-Pipeline phù hợp cho:
-
-* 🎬 TikTok.
-* 📱 YouTube Shorts.
-* 📸 Instagram Reels.
-* 🎙️ Video voice-over.
-* 📰 Video tin tức.
-* 📚 Video giáo dục.
-* 📖 Audiobook ngắn.
-* 🧠 Video quote / philosophy.
-* 🎵 Karaoke và subtitle animation.
-* ✨ Caption từng từ kiểu pop-up.
-
----
-
-# 🛠️ Công nghệ
-
-| Thành phần           | Công nghệ      |
-| -------------------- | -------------- |
-| Programming Language | Python         |
-| Text-to-Speech       | Edge-TTS       |
-| Speech-to-Text       | faster-whisper |
-| Subtitle Input       | SRT            |
-| Subtitle Output      | SRT            |
-| Audio Processing     | FFmpeg         |
-| Subtitle Parsing     | pysrt          |
-| Interface            | CLI            |
-
----
-
-# 📄 License
-
-Tùy thuộc vào license được lựa chọn cho dự án.
-
-> **Lưu ý:** Việc sử dụng Edge-TTS, faster-whisper, FFmpeg và các model liên quan cần tuân thủ license và điều khoản sử dụng tương ứng của từng dự án.
+Repository này hiện chưa khai báo một license cụ thể. Việc sử dụng Edge-TTS, faster-whisper, model Whisper và các dịch vụ liên quan phải tuân thủ license và điều khoản tương ứng của từng dự án.
