@@ -1,0 +1,133 @@
+# Python
+
+**pycache**/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Build / Distribution
+
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+wheels/
+share/python-wheels/
+
+# Virtual Environment
+
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python tooling
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Jupyter
+
+.ipynb_checkpoints/
+
+# IDE / Editors
+
+.vscode/
+.idea/
+*.iml
+
+# OS
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+
+*.log
+logs/
+
+# Environment / Secrets
+
+.env
+.env.*
+!.env.example
+
+# Temporary files
+
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# Application output
+
+output/
+outputs/
+temp/
+tmp/
+
+# Generated audio
+
+*.mp3
+*.wav
+*.ogg
+*.m4a
+*.flac
+*.aac
+
+# Generated subtitles
+
+synced_output.srt
+word_by_word.srt
+*_synced.srt
+*_word_by_word.srt
+
+# Whisper / AI models
+
+models/
+model/
+.whisper/
+.cache/
+huggingface/
+transformers_cache/
+
+# FFmpeg temporary files
+
+*.pcm
+*.raw
+
+# Test / Coverage generated files
+
+.pytest_cache/
+test-results/
+coverage.xml
+
+# PyInstaller
+
+*.spec
+*.manifest
+
+# Local configuration
+
+config.local.*
+settings.local.*
+
+# Keep project examples
+
+!examples/
+!examples/**
