@@ -8,7 +8,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Chuyển đổi SRT sang Audio và tự động Smart Chunking phụ đề chuẩn CapCut kèm Word-by-Word."
     )
-    parser.add_argument("input", help="Đường dẫn file SRT đầu vào.")
+    parser.add_argument("input", nargs="?", default="input.srt", help="Đường dẫn file SRT đầu vào (mặc định: input.srt).")
     parser.add_argument("-o", "--output", default="output.mp3", help="File audio đầu ra.")
     parser.add_argument("-s", "--sync-srt", default="synced_output.srt", help="File SRT đồng bộ mới (Smart Chunking).")
     parser.add_argument("-w", "--word-srt", default="", help="Tên file SRT dạng word-by-word đầu ra (để trống sẽ tự động đặt tên theo synced-srt).")

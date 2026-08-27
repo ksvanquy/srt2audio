@@ -52,7 +52,13 @@ Dependency trực tiếp được khai báo trong `requirements.txt`:
 Đặt file SRT UTF-8 vào thư mục dự án rồi chạy:
 
 ```bash
-python main.py input.srt
+python main.py
+```
+
+Lệnh trên dùng file đầu vào mặc định `input.srt`. Bạn cũng có thể chỉ định file khác:
+
+```bash
+python main.py ten-file-khac.srt
 ```
 
 Lệnh trên tạo:
@@ -96,7 +102,7 @@ python main.py input.srt `
 
 | Tham số | Mặc định | Mô tả |
 | --- | --- | --- |
-| `input` | Bắt buộc | Đường dẫn file SRT đầu vào. |
+| `input` | `input.srt` | Đường dẫn file SRT đầu vào. |
 | `-o`, `--output` | `output.mp3` | File audio đầu ra. |
 | `-s`, `--sync-srt` | `synced_output.srt` | SRT được tạo từ timestamp của Whisper và thuật toán chia chunk. |
 | `-w`, `--word-srt` | Trống | Tên SRT word-by-word; để trống thì tự động đặt tên theo `--sync-srt`. |
